@@ -1,0 +1,75 @@
+
+clc;
+clear;
+close all;
+
+% Experiment 1(a): AM Generation and Detection
+% Carrier frequency = 1 MHz
+% Message frequency = 1 kHz
+
+Ac = 5;              % Carrier amplitude (V)
+fc = 1e6;            % Carrier frequency (Hz)
+fm = 1e3;             % Message frequency (Hz)
+fs = 20e6;            % Sampling frequency (Hz)
+
+t = 0:1/fs:2/fm;
+
+% Message signal (unit amplitude)
+m = sin(2*pi*fm*t);
+
+% Carrier signal
+c = Ac*sin(2*pi*fc*t);
+
+% Modulation indices for three conditions
+mu_values = [0.5 1.0 1.5];
+
+figure('Name','AM Generation and Detection', ...
+    'NumberTitle','off');
+
+for k = 1:length(mu_values)
+
+    mu = mu_values(k);
+
+    % AM signal generation
+    am = Ac*(1 + mu*m).*sin(2*pi*fc*t);
+
+    % Envelope detection
+    envelope = abs(hilbert(am));
+
+    % Recover message signal
+    demod = envelope - Ac;
+
+    % Plot message signal
+    subplot(3,3,(k-1)*3+1);
+    plot(t*1000,m);
+    title(sprintf('Message Signal, m = %.1f',mu));
+    xlabel('Time (ms)');
+    ylabel('Amplitude');
+    grid on;
+
+    % Plot AM signal
+    subplot(3,3,(k-1)*3+2);
+    plot(t*1000,am);
+    title(sprintf('AM Signal, m = %.1f',mu));
+    xlabel('Time (ms)');
+    ylabel('Amplitude (V)');
+    grid on;
+
+    % Plot demodulated signal
+    subplot(3,3,(k-1)*3+3);
+    plot(t*1000,demod);
+    title('Demodulated Signal');
+    xlabel('Time (ms)');
+    ylabel('Amplitude (V)');
+    grid on;
+
+    fprintf('Modulation Index = %.1f : ',mu);
+
+    if mu < 1
+        fprintf('Under Modulation\n');
+    elseif mu == 1
+        fprintf('Critical Modulation\n');
+    else
+        fprintf('Over Modulation\n');
+    end
+end
