@@ -1,0 +1,108 @@
+
+clc;
+clear;
+close all;
+
+% Experiment 1(b): AM Sideband Power and Frequency Analysis
+
+% Input parameters
+Am = 1;             % Message amplitude (V)
+fm = 500;            % Message frequency (Hz)
+Ac = 5;              % Carrier amplitude (V)
+fc = 5000;           % Carrier frequency (Hz)
+fs = 20*fc;          % Sampling frequency (Hz)
+
+% Time vector
+t = 0:1/fs:4/fm;
+
+% Message signal
+m = Am*sin(2*pi*fm*t);
+
+% Carrier signal
+c = Ac*sin(2*pi*fc*t);
+
+% Modulation index
+mu = Am/Ac;
+
+% AM signal generation
+am = Ac*(1 + mu*sin(2*pi*fm*t)) ...
+     .* sin(2*pi*fc*t);
+
+% Demodulation using Hilbert transform
+dem = abs(hilbert(am));
+dem = dem - Ac;
+
+% Normalize recovered signal for comparison
+dem = dem / mu;
+
+% FFT analysis
+N = length(am);
+AM_FFT = abs(fftshift(fft(am)))/N;
+f = (-floor(N/2):ceil(N/2)-1)*(fs/N);
+
+% Sideband frequencies
+USB = fc + fm;
+LSB = fc - fm;
+
+% Power calculations
+Pc = Ac^2/2;
+Psb = (mu^2*Pc)/4;
+Ptotal = Pc + 2*Psb;
+
+% Plotting
+figure('Name','AM Modulation','NumberTitle','off');
+
+subplot(3,2,1);
+plot(t,m);
+title('Message Signal');
+xlabel('Time (s)');
+ylabel('Amplitude (V)');
+grid on;
+
+subplot(3,2,2);
+plot(t,c);
+title('Carrier Signal');
+xlabel('Time (s)');
+ylabel('Amplitude (V)');
+grid on;
+
+subplot(3,2,3);
+plot(t,am);
+title('AM Signal');
+xlabel('Time (s)');
+ylabel('Amplitude (V)');
+grid on;
+
+subplot(3,2,4);
+plot(t,dem);
+title('Demodulated Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(3,2,5);
+plot(f,AM_FFT);
+xlim([fc-3*fm fc+3*fm]);
+title('Sideband Frequency Spectrum');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+grid on;
+
+subplot(3,2,6);
+bar([Pc Psb Psb]);
+set(gca,'XTickLabel',{'Carrier','USB','LSB'});
+title('Power Distribution');
+ylabel('Power (W)');
+grid on;
+
+% Display calculated results
+fprintf('\nAM SIDEBAND ANALYSIS RESULTS\n');
+fprintf('------------------------------\n');
+fprintf('Modulation Index = %.2f\n',mu);
+fprintf('Upper Sideband (USB) = %.0f Hz\n',USB);
+fprintf('Lower Sideband (LSB) = %.0f Hz\n',LSB);
+fprintf('Carrier Power = %.3f W\n',Pc);
+fprintf('USB Power = %.3f W\n',Psb);
+fprintf('LSB Power = %.3f W\n',Psb);
+fprintf('Total Sideband Power = %.3f W\n',2*Psb);
+fprintf('Total Transmitted Power = %.3f W\n',Ptotal);
