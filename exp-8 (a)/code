@@ -1,0 +1,73 @@
+
+clc;
+clear;
+close all;
+
+%% Objective 1: Generate BPSK Symbols
+N = 1000;                         % Number of bits
+data = randi([0 1], N, 1);       % Random binary sequence
+
+% BPSK mapping: 0 -> -1, 1 -> +1
+bpsk_symbols = 2*data - 1;
+
+%% Objective 2: Plot Ideal BPSK Constellation
+figure('Name','BPSK Constellation Analysis', ...
+       'NumberTitle','off');
+
+subplot(1,2,1);
+scatter(real(bpsk_symbols), imag(bpsk_symbols), ...
+        30, 'filled');
+hold on;
+xline(0,'k','LineWidth',1.5);
+yline(0,'k','LineWidth',1.5);
+grid on;
+axis equal;
+xlim([-1.5 1.5]);
+ylim([-1 1]);
+xlabel('In-Phase (I)');
+ylabel('Quadrature (Q)');
+title('Ideal BPSK Constellation');
+
+%% Objective 3: Add AWGN Noise
+SNR = 5;                          % Signal-to-noise ratio (dB)
+
+% Generate AWGN without requiring the awgn() function
+signal_power = mean(abs(bpsk_symbols).^2);
+noise_power = signal_power / (10^(SNR/10));
+
+noise = sqrt(noise_power)*randn(N,1);
+rx_signal = bpsk_symbols + noise;
+
+% Plot noisy constellation
+subplot(1,2,2);
+scatter(real(rx_signal), imag(rx_signal), ...
+        15, 'filled');
+hold on;
+xline(0,'k','LineWidth',1.5);
+yline(0,'k','LineWidth',1.5);
+grid on;
+axis equal;
+xlim([-2.5 2.5]);
+ylim([-2 2]);
+xlabel('In-Phase (I)');
+ylabel('Quadrature (Q)');
+title(['Noisy BPSK Constellation (SNR = ', ...
+       num2str(SNR), ' dB)']);
+
+%% Symbol Detection
+detected_bits = real(rx_signal) > 0;
+
+%% Calculate Errors and BER
+num_errors = sum(data ~= detected_bits);
+BER = num_errors/N;
+
+%% Display Results
+fprintf('\nBPSK MODULATION RESULTS\n');
+fprintf('------------------------------\n');
+fprintf('Number of Transmitted Bits : %d\n', N);
+fprintf('Signal-to-Noise Ratio      : %.2f dB\n', SNR);
+fprintf('Number of Bit Errors       : %d\n', num_errors);
+fprintf('Bit Error Rate (BER)       : %.4f\n', BER);
+
+fprintf('\nBPSK mapping: 0 -> -1, 1 -> +1\n');
+fprintf('BPSK simulation completed successfully.\n');
